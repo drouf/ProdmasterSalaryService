@@ -1,0 +1,21 @@
+﻿@model ProdmasterSalaryService.ViewModels.Report.ReportModel
+@{
+    ViewData["Title"] = "Reports";
+    var selectYear = new SelectList(ViewBag.Year, "Key", "Value");
+    var selectMonth = new SelectList(ViewBag.Month, "Key", "Value");
+    selectYear.Where(p => p.Value == DateTime.Now.Year.ToString()).First().Selected = true;
+    selectMonth.Where(p => p.Value == DateTime.Now.Month.ToString()).First().Selected = true;
+}
+
+<h2 class="mb-5 display-4">Отчёты</h2>
+
+<div class="mb-3 select-group d-inline-flex">
+    <select id="selectMonth" class="form-select w-auto" asp-items="@selectMonth" onchange="RefreshReportsTable()"></select>
+    <select id="selectYear" class="form-select" asp-items="@selectYear" onchange="RefreshReportsTable()"></select>
+</div>
+
+<div class="modal" id="dialogContent" tabindex="-1" role="dialog"></div>
+
+<div id="report" class="row g-3" style="overflow-x:auto;">
+    @await Html.PartialAsync("_ReportTable", Model)
+</div>

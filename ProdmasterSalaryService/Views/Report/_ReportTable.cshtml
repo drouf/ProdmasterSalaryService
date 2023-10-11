@@ -1,0 +1,80 @@
+﻿@model ProdmasterSalaryService.ViewModels.Report.ReportModel
+
+<table cellpadding="3" cellspacing="0" class="position-relative">
+    <thead>
+        <tr>
+            <th colspan="7" class="weekend-day">@Model.Title</th>
+        </tr>
+        <tr>
+        @foreach (var field in Model.Fields[0].Row)
+        {
+                <th class="weekend-day">@field.Field</th>
+        }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 1; i < Model.Fields.Count; i++)
+        {
+
+            <tr class="clickable-row bg-gradient bg-opacity-25 col-2" data-href="">
+                @foreach (var field in Model.Fields[i].Row)
+                {
+                    <th class="@field.Class" onclick="GetMenu(this)">@field.Field</th>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<table cellpadding="3" cellspacing="0" class="position-relative">
+    <thead>
+        <tr>
+            <th class="weekend-day">Рабочих дней</th>
+            <th class="weekend-day">ЗП</th>
+            <th class="weekend-day">ЗП в день</th>
+            <th class="weekend-day">Пропущено дней</th>
+            <th class="weekend-day">Получу</th>
+            <th class="weekend-day">Упущу</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="clickable-row bg-gradient bg-opacity-25 col-2" data-href="">
+            <th class="common-day">@Model.WorkDays</th>
+            <th class="common-day">@Model.Salary</th>
+            <th class="common-day">@Model.SalaryPerDay</th>
+            <th class="common-day">@Model.SkipedDays</th>
+            <th class="common-day">@Model.HowMuchWillGet</th>
+            <th class="common-day">@Model.HowMuchLose</th>
+        </tr>
+    </tbody>
+</table>
+
+<table cellpadding="3" cellspacing="0" class="position-relative">
+    <thead>
+        <tr>
+            <th class="weekend-day">Дата</th>
+            <th class="weekend-day">Примечание</th>
+            <th class="weekend-day">Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var operation in Model.Operations)
+        {
+            <tr class="clickable-row bg-gradient bg-opacity-25 col-2" data-href="">
+                <th class="common-day">@operation.Paid.ToLocalTime()</th>
+                <th class="common-day">@operation.Note</th>
+                <th class="common-day">@operation.Sum</th>
+            </tr>
+        }
+        <tr>
+            <th class="weekend-day">Осталось получить</th>
+            <th class="weekend-day"></th>
+            <th class="weekend-day">Получил</th>
+        </tr>
+        <tr>
+            <th class="common-day">@Model.HowMuchLeftToGet</th>
+            <th class="common-day"></th>
+            <th class="common-day">@Model.HowMuchGet</th>
+        </tr>
+    </tbody>
+</table>

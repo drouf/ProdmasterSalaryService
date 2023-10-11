@@ -1,0 +1,17 @@
+﻿@model ProdmasterSalaryService.ViewModels.Report.ReportDialogModel
+
+<div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5>Выберите действие</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            <div id="selectedDay" class="d-none">@Model.Date.ToString("O")</div>
+        </div>
+        <div class="modal-body d-flex justify-content-between">
+            @foreach(var item in Model.MenuItems)
+            {
+                <div class="btn btn-secondary" onclick="@item.OnClick">@item.Title</div>
+            }
+        </div>
+    </div>
+</div>

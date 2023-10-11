@@ -1,0 +1,23 @@
+﻿@using ProdmasterSalaryService.ViewModels.Account
+@model UserModel
+@{
+    ViewData["Title"] = "Профиль";
+}
+
+<h1 class="mb-5 display-4">Профиль</h1>
+
+<div class="mb-3 fs-2">
+    <p>
+        ФИО: @Model.Name
+    </p>
+    <p>
+        Логин: @Model.Login
+    </p>
+    <p>
+        Дисан ИДН: @Model.DisanId
+    </p>
+    <p>
+        Оклад: @Model.Salary
+    </p>
+</div>
+<a class="btn btn-outline-dark" asp-controller="Account" asp-action="ChangePassword">Сменить пароль</a>

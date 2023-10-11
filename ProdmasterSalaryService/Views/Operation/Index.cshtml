@@ -1,0 +1,21 @@
+﻿@model ProdmasterSalaryService.ViewModels.Operation.OperationModel
+@{
+    ViewData["Title"] = "Operations";
+}
+
+<h2 class="mb-5 display-4">Операции</h2>
+
+<div class="row g-3" style="overflow-x:auto;">
+    <table cellpadding="3" cellspacing="0" class="position-relative">
+        <thead>
+            <tr>
+                <th>Комментарий</th>
+                <th>Сумма</th>
+                <th>Дата выплаты</th>
+            </tr>
+        </thead>
+        <tbody>
+            @await Html.PartialAsync("_OperationsTable", Model)
+        </tbody>
+    </table>
+</div>
