@@ -221,7 +221,10 @@ namespace ProdmasterSalaryService.Controllers
                 reportModel.HowMuchLose = Math.Round(reportModel.Salary - reportModel.HowMuchWillGet, 2);
 
                 var operations = (await _operationService.GetOperationsByUser(user)).ToList();
+                var unaccountedOperations = operations.Where(o => o.Paid.Year == year && o.Paid.Month == month).ToList();
+                unaccountedOperations = unaccountedOperations.Except(operations.Where(o => o.Note != null && o.Note.ToLower().Contains(firstDay.AddDays(-1).ToString("MMMM").ToLower()) && o.Paid.Year == year).ToList()).ToList();
                 operations = operations.Where(o => o.Note != null && o.Note.ToLower().Contains(firstDay.ToString("MMMM").ToLower()) && o.Paid.Year == year).ToList();
+                operations = operations.Union(unaccountedOperations).ToList();
 
                 reportModel.Operations = operations;
                 reportModel.HowMuchGet = Math.Round(operations.Sum(o => o.Sum),2);
