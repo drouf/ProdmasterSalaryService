@@ -180,12 +180,20 @@ namespace ProdmasterSalaryService.Controllers
 
                 int workedDays = 0;
                 int remoteDays = 0;
+                int willWorkDays = 0;
 
                 for (DateTime day = firstDay; day <= lastDay; day = day.AddDays(1))
                 {
                     var dayOfWeek = GetDayOfWeekThisCulture(day.DayOfWeek);
 
-                    if(dayOfWeek <= 4) { reportModel.WorkDays += 1; }
+                    if(dayOfWeek <= 4) 
+                    { 
+                        reportModel.WorkDays += 1;
+                        if(day > DateTime.Now.Date)
+                        {
+                            willWorkDays += 1;
+                        }
+                    }
 
                     var shift = await _shiftsService.FirstByDateAsync(day, user);
 
@@ -209,7 +217,7 @@ namespace ProdmasterSalaryService.Controllers
                 }
 
                 reportModel.SalaryPerDay = Math.Round(reportModel.Salary / reportModel.WorkDays, 2);
-                reportModel.HowMuchWillGet = Math.Round((workedDays * reportModel.SalaryPerDay) + (remoteDays * reportModel.SalaryPerDay * 0.5), 2);
+                reportModel.HowMuchWillGet = Math.Round(((workedDays+willWorkDays) * reportModel.SalaryPerDay) + (remoteDays * reportModel.SalaryPerDay * 0.5), 2);
                 reportModel.HowMuchLose = Math.Round(reportModel.Salary - reportModel.HowMuchWillGet, 2);
 
                 var operations = (await _operationService.GetOperationsByUser(user)).ToList();
@@ -218,7 +226,11 @@ namespace ProdmasterSalaryService.Controllers
                 reportModel.Operations = operations;
                 reportModel.HowMuchGet = Math.Round(operations.Sum(o => o.Sum),2);
                 reportModel.HowMuchLeftToGet = Math.Round(reportModel.HowMuchWillGet - reportModel.HowMuchGet, 2);
-
+                if(reportModel.HowMuchLeftToGet < 0)
+                {
+                    reportModel.Bonus = -1 * reportModel.HowMuchLeftToGet;
+                    reportModel.HowMuchLeftToGet = 0;
+                }
                 return reportModel;
             }
             catch (Exception)

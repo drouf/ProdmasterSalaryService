@@ -27,9 +27,9 @@ namespace ProdmasterSalaryService.ViewModels.Report
         public int SkipedDays { get; set; } = 0;
         public double HowMuchWillGet { get; set; } = 0;
         public double HowMuchLose { get; set; } = 0;
-
         public double HowMuchGet {  get; set; } = 0;
         public double HowMuchLeftToGet {  get; set; } = 0;
+        public double Bonus { get; set; } = 0;
 
         public List<Models.Classes.Operation> Operations { get; set; } = new List<Models.Classes.Operation>();
 
