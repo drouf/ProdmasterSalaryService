@@ -4,7 +4,16 @@
     var selectYear = new SelectList(ViewBag.Year, "Key", "Value");
     var selectMonth = new SelectList(ViewBag.Month, "Key", "Value");
     selectYear.Where(p => p.Value == DateTime.Now.Year.ToString()).First().Selected = true;
-    selectMonth.Where(p => p.Value == DateTime.Now.Month.ToString()).First().Selected = true;
+    string monthToSelect;
+    if (DateTime.Now.Day < 25)
+    {
+        monthToSelect = (DateTime.Now.AddMonths(-1).Month).ToString();
+    }
+    else
+    {
+        monthToSelect = (DateTime.Now.Month).ToString();
+    }
+    selectMonth.Where(p => p.Value == monthToSelect).First().Selected = true;
 }
 
 <h2 class="mb-5 display-4">Отчёты</h2>

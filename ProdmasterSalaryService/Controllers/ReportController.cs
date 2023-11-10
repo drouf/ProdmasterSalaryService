@@ -42,7 +42,17 @@ namespace ProdmasterSalaryService.Controllers
             }
 
             if (year == null) { year =  DateTime.Now.Year; }
-            if (month == null) { month = DateTime.Now.Month; }
+            if (month == null)
+            {
+                if(DateTime.Now.Day < 25)
+                {
+                    month = DateTime.Now.AddMonths(-1).Month;
+                }
+                else
+                {
+                    month = DateTime.Now.Month;
+                }
+            }
 
             await FillSelectsViewBag(user);
 
