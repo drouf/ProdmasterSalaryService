@@ -24,7 +24,7 @@ namespace ProdmasterSalaryService.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await GetUser();
-            var model = await _userService.GetModelFromUser(user);
+            var model = _userService.GetUserModelByUser(user);
             return View(model);
         }
         [AllowAnonymous]
@@ -139,7 +139,7 @@ namespace ProdmasterSalaryService.Controllers
         }
 
         [HttpGet("changePassword")]
-        public async Task<IActionResult> ChangePassword()
+        public IActionResult ChangePassword()
         {
             return View();
         }

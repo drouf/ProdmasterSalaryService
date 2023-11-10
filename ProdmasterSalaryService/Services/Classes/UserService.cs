@@ -47,19 +47,21 @@ namespace ProdmasterSalaryService.Services.Classes
         {
             return _repository.First(c => c.DisanId == disanId);
         }
-        public Task<User> GetByLogin(string login)
+        public Task<User> GetByLogin(string? login)
         {
+            login ??= string.Empty;
             return _repository.First(c => c.Login == login);
         }
 
-        public async Task<UserModel> GetModelFromUser(User user)
+        public UserModel? GetUserModelByUser(User? user)
         {
+            if (user == null) return null;
             return new UserModel
             {
                 DisanId = user.DisanId,
-                Name = user.Custom.Name,
+                Name = (user.Custom != null) ? user.Custom.Name : "Имя не задано",
                 Login = user.Login,
-                Salary = user.Custom.Salary,
+                Salary = (user.Custom != null) ? user.Custom.Salary : 0,
             };
         }
 

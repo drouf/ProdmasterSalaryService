@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using ProdmasterSalaryService.Models.Interfaces;
 
 namespace ProdmasterSalaryService.Models.Classes
@@ -14,6 +15,7 @@ namespace ProdmasterSalaryService.Models.Classes
         public string Password { get; set; }
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
+        [ForeignKey("CustomId")]
         public long CustomId { get; set; }
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]

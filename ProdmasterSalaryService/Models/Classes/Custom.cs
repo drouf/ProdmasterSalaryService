@@ -10,7 +10,7 @@ namespace ProdmasterSalaryService.Models.Classes
         [Newtonsoft.Json.JsonProperty("number")]
         public long DisanId { get; set; }
         [Newtonsoft.Json.JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [Newtonsoft.Json.JsonProperty("salary")]
         public long Salary { get; set; }
         [Newtonsoft.Json.JsonIgnore]
@@ -18,8 +18,8 @@ namespace ProdmasterSalaryService.Models.Classes
         public virtual User? User { get; set; }
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        public virtual List<Operation?>? Operations { get; set; }
-        public virtual List<Shift?>? Shifts { get; set; }
+        public virtual IEnumerable<Operation> Operations { get; set; } = new List<Operation>();
+        public virtual IEnumerable<Shift> Shifts { get; set; } = new List<Shift>();
         public DateTime? Created { get; set; }
         public DateTime? Modified { get; set; }
     }

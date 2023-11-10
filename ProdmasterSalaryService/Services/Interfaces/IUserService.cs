@@ -9,8 +9,8 @@ namespace ProdmasterSalaryService.Services.Interfaces
         Task<User> Add(RegisterModel model, Custom custom);
         Task<User> Get(string login, string password);
         Task<User> GetByDisanId(long disanId);
-        Task<User> GetByLogin(string login);
-        Task<UserModel> GetModelFromUser(User user);
+        Task<User> GetByLogin(string? login);
+        UserModel? GetUserModelByUser(User? user);
         Task<User> UpdateUser(User user);
         Task<bool> UserExists(RegisterModel model);
     }
