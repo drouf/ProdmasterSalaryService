@@ -7,10 +7,21 @@ using ProdmasterSalaryService.Repositories;
 using ProdmasterSalaryService.Services.Classes;
 using ProdmasterSalaryService.Services.Hosted;
 using ProdmasterSalaryService.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using ProdmasterSalaryService.ViewModels.Account;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddResponseCaching();
+builder.Services.AddControllers(options =>
+{
+    options.CacheProfiles.Add("Default30",
+        new CacheProfile()
+        {
+            Duration = 30
+        });
+});
 
 //Services
 {
@@ -90,7 +101,7 @@ app.UseRouter(r =>
         await response.SendFileAsync(file);
     });
 });
-
+app.UseResponseCaching();
 app.UseAuthorization();
 
 app.MapControllerRoute(
