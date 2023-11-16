@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using ProdmasterSalaryService.Extentions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ProdmasterSalaryService.Models.Classes;
@@ -268,9 +269,9 @@ namespace ProdmasterSalaryService.Controllers
                     }
                 }
 
-                reportModel.SalaryPerDay = Math.Round(reportModel.Salary / reportModel.WorkDays, 2);
-                reportModel.HowMuchWillGet = Math.Round(((workedDays+willWorkDays) * reportModel.SalaryPerDay) + (remoteDays * reportModel.SalaryPerDay * 0.5), 2);
-                reportModel.HowMuchLose = Math.Round(reportModel.Salary - reportModel.HowMuchWillGet, 2);
+                reportModel.SalaryPerDay = reportModel.Salary / reportModel.WorkDays;
+                reportModel.HowMuchWillGet = ((workedDays+willWorkDays) * reportModel.SalaryPerDay) + (remoteDays * reportModel.SalaryPerDay * 0.5);
+                reportModel.HowMuchLose = reportModel.Salary - reportModel.HowMuchWillGet;
 
                 var operations = (await _operationService.GetOperationsByUser(user)).ToList();
                 var unaccountedOperations = operations.Where(o => o.Paid.Year == year && o.Paid.Month == month).ToList();
@@ -279,13 +280,16 @@ namespace ProdmasterSalaryService.Controllers
                 operations = operations.Union(unaccountedOperations).ToList();
 
                 reportModel.Operations = operations;
-                reportModel.HowMuchGet = Math.Round(operations.Sum(o => o.Sum),2);
-                reportModel.HowMuchLeftToGet = Math.Round(reportModel.HowMuchWillGet - reportModel.HowMuchGet, 2);
-                if(reportModel.HowMuchLeftToGet < 0)
+                reportModel.HowMuchGet = operations.Sum(o => o.Sum);
+                reportModel.HowMuchLeftToGet = reportModel.HowMuchWillGet - reportModel.HowMuchGet;
+                if (reportModel.HowMuchLeftToGet < 0)
                 {
                     reportModel.Bonus = -1 * reportModel.HowMuchLeftToGet;
                     reportModel.HowMuchLeftToGet = 0;
                 }
+
+                reportModel.RoundAllDoubles(2);
+
                 return reportModel;
             }
             catch (Exception)
