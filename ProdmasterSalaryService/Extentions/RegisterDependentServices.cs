@@ -9,6 +9,9 @@ using ProdmasterSalaryService.Services.Classes;
 using ProdmasterSalaryService.Services.Hosted;
 using ProdmasterSalaryService.Services.Interfaces;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using FluentValidation;
+using MediatR;
+using ProdmasterSalaryService.Behaviors;
 
 namespace ProdmasterSalaryService.Extentions
 {
@@ -41,6 +44,12 @@ namespace ProdmasterSalaryService.Extentions
                 builder.Services.AddHostedService<UpdateShiftsHostedService>();
                 builder.Services.AddHttpClient<IUpdateShiftsService, UpdateShiftsService>()
                     .SetHandlerLifetime(TimeSpan.FromMinutes(30));
+                builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+                builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+                //builder.Services.AddAutoMapper(typeof(AppMappingProfile));
+                builder.Services.AddMediatR(cfg => {
+                    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+                });
             }
             //Repository
             {
