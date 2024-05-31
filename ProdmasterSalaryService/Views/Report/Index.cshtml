@@ -15,8 +15,6 @@
 
     (selectYear.FirstOrDefault(p => p.Value == currentDate.Year.ToString()) ?? selectYear.First()).Selected = true;
     (selectMonth.FirstOrDefault(p => p.Value == currentDate.Month.ToString()) ?? selectMonth.First()).Selected = true;
-    //selectYear.FirstOrDefault(p => p.Value == currentDate.Year.ToString()).Selected = true;
-    //selectMonth.Where(p => p.Value == currentDate.Month.ToString()).First().Selected = true;
 }
 
 <h2 class="mb-5 display-4">Отчёты</h2>
