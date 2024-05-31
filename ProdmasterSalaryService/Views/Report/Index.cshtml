@@ -3,8 +3,18 @@
     ViewData["Title"] = "Reports";
     var selectYear = new SelectList(ViewBag.Year, "Key", "Value");
     var selectMonth = new SelectList(ViewBag.Month, "Key", "Value");
-    selectYear.Where(p => p.Value == DateTime.Now.Year.ToString()).First().Selected = true;
-    selectMonth.Where(p => p.Value == DateTime.Now.Month.ToString()).First().Selected = true;
+    DateTime currentDate;
+    if (DateTime.Now.Day < 25)
+    {
+        currentDate = DateTime.Now.AddMonths(-1);
+    }
+    else
+    {
+        currentDate = DateTime.Now;
+    }
+
+    (selectYear.FirstOrDefault(p => p.Value == currentDate.Year.ToString()) ?? selectYear.First()).Selected = true;
+    (selectMonth.FirstOrDefault(p => p.Value == currentDate.Month.ToString()) ?? selectMonth.First()).Selected = true;
 }
 
 <h2 class="mb-5 display-4">Отчёты</h2>

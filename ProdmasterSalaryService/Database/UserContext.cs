@@ -21,10 +21,14 @@ namespace ProdmasterSalaryService.Database
                 .WithOne(c => c.User);
             modelBuilder.Entity<Operation>()
                 .HasOne(o => o.Custom)
-                .WithMany(c => c.Operations);
+                .WithMany(c => c.Operations)
+                .HasForeignKey(o => o.Object)
+                .HasPrincipalKey(c => c.DisanId);
             modelBuilder.Entity<Shift>()
-                .HasOne(o => o.Custom)
-                .WithMany(c => c.Shifts);
+                .HasOne(s => s.Custom)
+                .WithMany(c => c.Shifts)
+                .HasForeignKey(s => s.Object)
+                .HasPrincipalKey(c => c.DisanId);
         }
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
             CancellationToken cancellationToken = new CancellationToken())

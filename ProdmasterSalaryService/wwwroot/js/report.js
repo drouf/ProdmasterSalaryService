@@ -30,7 +30,7 @@ modal.addEventListener('shown.bs.modal', () => {
 })
 
 function GetMenu(element) {
-    if ($(element).hasClass("work-day")) { return; }
+    if ((!$(element).hasClass("passed-day") && !$(element).hasClass("remote-day") && !$(element).hasClass("holiday-day"))) { return; }
     let day = $(element).text();
     dateString = GetDateString(day);
     data = {
@@ -83,6 +83,27 @@ function MarkAsSkip() {
     modal.modal('hide');
     $.ajax({
         url: "/report/setDateSkip",
+        method: 'GET',
+        data,
+        success: (html) => {
+            $('#dialogContent').html(html);
+            RefreshReportsTable();
+        },
+        error: (response) => {
+            console.log(response);
+        }
+    });
+
+}
+
+function MarkAsHoliday() {
+    let dateString = $("#selectedDay").text();
+    data = {
+        dateString: dateString,
+    };
+    modal.modal('hide');
+    $.ajax({
+        url: "/report/setHoliday",
         method: 'GET',
         data,
         success: (html) => {

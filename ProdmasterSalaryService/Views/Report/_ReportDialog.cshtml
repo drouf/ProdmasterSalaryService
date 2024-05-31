@@ -7,10 +7,10 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             <div id="selectedDay" class="d-none">@Model.Date.ToString("O")</div>
         </div>
-        <div class="modal-body d-flex justify-content-between">
+        <div class="modal-body d-flex flex-column">
             @foreach(var item in Model.MenuItems)
             {
-                <div class="btn btn-secondary" onclick="@item.OnClick">@item.Title</div>
+                <div class="btn btn-secondary mb-2" onclick="@item.OnClick">@item.Title</div>
             }
         </div>
     </div>

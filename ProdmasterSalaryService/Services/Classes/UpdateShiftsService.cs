@@ -56,8 +56,24 @@ namespace ProdmasterSalaryService.Services.Classes
 
         private async Task<IEnumerable<Shift>?> GetShifts()
         {
+            var shifts = await GetShiftsFromTable("worktime");
+            var archShifts = await GetShiftsFromTable("worktimearch");
+            var arch2020Shifts = await GetShiftsFromTable("worktimearch20201231");
+            if (shifts != null && archShifts != null && archShifts.Any())
+            {
+                shifts = shifts.Union(archShifts);
+                if(arch2020Shifts != null)
+                {
+                    shifts = shifts.Union(arch2020Shifts);
+                }
+            }
+            return shifts;
+        }
+
+        private async Task<IEnumerable<Shift>?> GetShiftsFromTable(string tableName)
+        {
             var query = "\"select wt.number, wt.idn as object, wt.timebeg, wt.timeend, 1 as coefficient " +
-                "from worktime.dbf as wt " +
+                $"from {tableName} as wt " +
                 "inner join custom.dbf as c on wt.idn == c.number and c.parent == 1971601\"";
             return await GetObjectsFromQueryAsync<IEnumerable<Shift>>(query);
         }

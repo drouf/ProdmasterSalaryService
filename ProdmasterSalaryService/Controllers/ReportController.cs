@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using ProdmasterSalaryService.Extentions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ProdmasterSalaryService.Models.Classes;
@@ -10,6 +11,8 @@ using ProdmasterSalaryService.ViewModels.Report;
 using System;
 using System.Globalization;
 using System.Linq;
+using ProdmasterSalaryService.Requests;
+using MediatR;
 
 namespace ProdmasterSalaryService.Controllers
 {
@@ -19,19 +22,20 @@ namespace ProdmasterSalaryService.Controllers
     {
         private readonly ILogger<ReportController> _logger;
         private readonly IUserService _userService;
-        private readonly IOperationService _operationService;
         private readonly IShiftService _shiftsService;
-        public ReportController(ILogger<ReportController> logger, IOperationService operationService, IUserService userService, IShiftService shiftsService)
+        private readonly IMediator _mediator;
+        public ReportController(ILogger<ReportController> logger, IOperationService operationService, IUserService userService, IShiftService shiftsService, IMediator mediator)
         {
             _logger = logger;
             _operationService = operationService;
             _userService = userService;
             _shiftsService = shiftsService;
+            _mediator = mediator;
         }
 
         [HttpGet]
 
-        public async Task<IActionResult> Index(int? year, int? month)
+        public async Task<IActionResult> Index([FromQuery] ReportIndexRequest request)
         {
             var user = await GetUser();
 
@@ -41,17 +45,23 @@ namespace ProdmasterSalaryService.Controllers
                 return BadRequest("Failed to get user");
             }
 
-            if (year == null) { year =  DateTime.Now.Year; }
-            if (month == null) { month = DateTime.Now.Month; }
+            request.User = user;
 
-            await FillSelectsViewBag();
-
-            return View(await GetReportModelAsync(user, (int)year, (int)month));
+            try
+            {
+                var model = await _mediator.Send(request);
+                await FillSelectsViewBag(user);
+                return View(model);
+            }
+            catch(FluentValidation.ValidationException validationException)
+            {
+                return BadRequest(validationException.Errors);
+            }
         }
 
         [HttpGet]
         [Route("refreshReportsTable")]
-        public async Task<IActionResult> RefreshReportTable(int? year, int? month)
+        public async Task<IActionResult> RefreshReportTable([FromQuery] ReportIndexRequest request)
         {
             var user = await GetUser();
 
@@ -61,10 +71,17 @@ namespace ProdmasterSalaryService.Controllers
                 return BadRequest("Failed to get user");
             }
 
-            if (year == null) { year = DateTime.Now.Year; }
-            if (month == null) { month = DateTime.Now.Month; }            
+            request.User = user;
 
-            return PartialView("_ReportTable", await GetReportModelAsync(user, (int)year, (int)month));
+            try
+            {
+                var model = await _mediator.Send(request);
+                return PartialView("_ReportTable", model);
+            }
+            catch (FluentValidation.ValidationException validationException)
+            {
+                return BadRequest(validationException.Errors);
+            }
         }
 
         [HttpGet]
@@ -88,10 +105,11 @@ namespace ProdmasterSalaryService.Controllers
             if (shift == null && date.Date <= DateTime.Now.Date)
             {
                 model.MenuItems.Add(new ReportMenuItemModel() { Title = "Пометить как удаленка", OnClick = "MarkAsRemote()" });
+                model.MenuItems.Add(new ReportMenuItemModel() { Title = "Пометить как праздник", OnClick = "MarkAsHoliday()" });
             }
             if(shift != null)
             {
-                if (shift.Coefficient == 0.5)
+                if (shift.Coefficient == 0.5 || (shift.Coefficient == 1 && shift.DisanId < 0))
                 {
                     model.MenuItems.Add(new ReportMenuItemModel() { Title = "Пометить как пропуск", OnClick = "MarkAsSkip()" });
                 }
@@ -166,79 +184,36 @@ namespace ProdmasterSalaryService.Controllers
             }
         }
 
-        [NonAction]
-        private async Task<ReportModel> GetReportModelAsync(User user, int year, int month)
+        [HttpGet]
+        [Route("setHoliday")]
+        public async Task<IActionResult> SetHoliday(string dateString)
         {
-            try
+            if (dateString == null || dateString == string.Empty) { return BadRequest("Failed to get date"); }
+            var success = DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var date);
+            if (!success) { return BadRequest("Failed to parse date"); }
+            var user = await GetUser();
+
+            if (user == null)
             {
-                var reportModel = new ReportModel();
-                reportModel.Salary = (user.Custom != null) ? user.Custom.Salary : 0;
-                var curRow = 1;
-                var firstDay = new DateTime((int)year, (int)month, 1);
-                var lastDay = new DateTime((int)year, (int)month, DateTime.DaysInMonth((int)year, (int)month));
-                reportModel.Title = ($"{firstDay.ToString("MMMM")} {year}").ToUpper();
-
-                int workedDays = 0;
-                int remoteDays = 0;
-                int willWorkDays = 0;
-
-                for (DateTime day = firstDay; day <= lastDay; day = day.AddDays(1))
-                {
-                    var dayOfWeek = GetDayOfWeekThisCulture(day.DayOfWeek);
-
-                    if(dayOfWeek <= 4) 
-                    { 
-                        reportModel.WorkDays += 1;
-                        if(day > DateTime.Now.Date)
-                        {
-                            willWorkDays += 1;
-                        }
-                    }
-
-                    var shift = await _shiftsService.FirstByDateAsync(day, user);
-
-                    if(shift != null)
-                    {
-                        if (shift.Coefficient == 1) { workedDays += 1; }
-                        if (shift.Coefficient == 0.5) { remoteDays += 1; }
-                    }
-
-                    var classForDay = await GetClassForDayAsync(day, user);
-
-                    if (classForDay == "passed-day")
-                        reportModel.SkipedDays += 1;
-
-                    reportModel.SetField(curRow, dayOfWeek, day.Day.ToString(), classForDay);
-
-                    if (dayOfWeek == 6)
-                    {
-                        curRow++;
-                    }
-                }
-
-                reportModel.SalaryPerDay = Math.Round(reportModel.Salary / reportModel.WorkDays, 2);
-                reportModel.HowMuchWillGet = Math.Round(((workedDays+willWorkDays) * reportModel.SalaryPerDay) + (remoteDays * reportModel.SalaryPerDay * 0.5), 2);
-                reportModel.HowMuchLose = Math.Round(reportModel.Salary - reportModel.HowMuchWillGet, 2);
-
-                var operations = (await _operationService.GetOperationsByUser(user)).ToList();
-                var unaccountedOperations = operations.Where(o => o.Paid.Year == year && o.Paid.Month == month).ToList();
-                unaccountedOperations = unaccountedOperations.Except(operations.Where(o => o.Note != null && o.Note.ToLower().Contains(firstDay.AddDays(-1).ToString("MMMM").ToLower()) && o.Paid.Year == year).ToList()).ToList();
-                operations = operations.Where(o => o.Note != null && o.Note.ToLower().Contains(firstDay.ToString("MMMM").ToLower()) && o.Paid.Year == year).ToList();
-                operations = operations.Union(unaccountedOperations).ToList();
-
-                reportModel.Operations = operations;
-                reportModel.HowMuchGet = Math.Round(operations.Sum(o => o.Sum),2);
-                reportModel.HowMuchLeftToGet = Math.Round(reportModel.HowMuchWillGet - reportModel.HowMuchGet, 2);
-                if(reportModel.HowMuchLeftToGet < 0)
-                {
-                    reportModel.Bonus = -1 * reportModel.HowMuchLeftToGet;
-                    reportModel.HowMuchLeftToGet = 0;
-                }
-                return reportModel;
+                _logger.LogWarning($"Failed to get user, userName: {User.Identity?.Name};");
+                return BadRequest("Failed to get user");
             }
-            catch (Exception)
+
+            var shift = await _shiftsService.FirstByDateAsync(date, user);
+            if (shift == null)
             {
-                return new ReportModel();
+                if (!await _shiftsService.AddHolidayShift(date, user))
+                {
+                    return BadRequest("Failed to add remote shift");
+                }
+                else
+                {
+                    return Ok();
+                }
+            }
+            else
+            {
+                return BadRequest("Shift exists");
             }
         }
 
@@ -250,48 +225,18 @@ namespace ProdmasterSalaryService.Controllers
         }
 
         [NonAction]
-        private int GetDayOfWeekThisCulture(DayOfWeek day)
+        private async Task FillSelectsViewBag(User user)
         {
-            return (day > 0) ? (int)day - 1 : 6;
-        }
-
-        private async Task<string> GetClassForDayAsync(DateTime day, User user)
-        {
-            if (GetDayOfWeekThisCulture(day.DayOfWeek) > 4)
+            var selectYear = new Dictionary<int, string>();
+            var firstShift = await _shiftsService.GetFirstWorkersShiftOrDefault(user);
+            if(firstShift != null && firstShift.Start!= null && firstShift.Start.Value.Year != DateTime.Now.Year)
             {
-                return "weekend-day";
-            }
-
-            var shift = await _shiftsService.FirstByDateAsync(day, user);
-            if(shift == null)
-            {
-                if (day > DateTime.Now.Date)
+                for (var year = firstShift.Start.Value.Year; year < DateTime.Now.Year; year++)
                 {
-                    return "future-day";
-                }
-                else
-                {
-                    return "passed-day";
+                    selectYear.Add(year, year.ToString());
                 }
             }
-            else
-            {
-                if (shift.Coefficient == 1)
-                    return "work-day";
-                else
-                    return "remote-day";
-            }
-        }
-
-        [NonAction]
-        private async Task FillSelectsViewBag()
-        {
-            var selectYear = new Dictionary<int, string>()
-            {
-                {DateTime.Now.Year-1, (DateTime.Now.Year-1).ToString()},
-                {DateTime.Now.Year, (DateTime.Now.Year).ToString()},
-                {DateTime.Now.Year+1, (DateTime.Now.Year+1).ToString()},
-            };
+            selectYear.Add(DateTime.Now.Year, (DateTime.Now.Year).ToString());
 
             var selectMonth = new Dictionary<int, string>()
             {

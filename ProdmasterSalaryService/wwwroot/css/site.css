@@ -100,7 +100,7 @@ option:disabled {
     color: white;
 }
 
-.weekend-day {
+.weekend-day, .holiday-day {
     background: #fd7e14;
     color: #212529;
 }

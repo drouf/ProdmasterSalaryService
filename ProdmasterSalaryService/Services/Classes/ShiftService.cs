@@ -1,4 +1,5 @@
-﻿using ProdmasterSalaryService.Models.Classes;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
+using ProdmasterSalaryService.Models.Classes;
 using ProdmasterSalaryService.Repositories;
 using ProdmasterSalaryService.Services.Interfaces;
 
@@ -11,6 +12,11 @@ namespace ProdmasterSalaryService.Services.Classes
         public ShiftService(ShiftRepository repository)
         {
             _repository = repository;
+        }
+
+        public async Task<Shift?> GetFirstWorkersShiftOrDefault(User user)
+        {
+            return (await _repository.Where(u => (u.Custom != null && user.Custom != null) && u.Custom.Id == user.Custom.Id)).MinBy(s => s.Start);
         }
         public async Task<Shift> FirstByDateAsync(DateTime date, User user)
         {
@@ -29,6 +35,30 @@ namespace ProdmasterSalaryService.Services.Classes
                 Object = (custom != null) ? custom.DisanId : 0,
                 Custom = custom,
                 
+            };
+            var addedShift = await _repository.Add(shift);
+            if (addedShift != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> AddHolidayShift(DateTime date, User user)
+        {
+            var custom = user.Custom;
+            var shift = new Shift()
+            {
+                DisanId = await GenerateFakeDisanId(),
+                Start = date,
+                End = date,
+                Coefficient = 1,
+                Object = (custom != null) ? custom.DisanId : 0,
+                Custom = custom,
+
             };
             var addedShift = await _repository.Add(shift);
             if (addedShift != null)

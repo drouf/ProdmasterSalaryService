@@ -1,5 +1,6 @@
 ﻿using ProdmasterSalaryService.Models.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProdmasterSalaryService.Models.Classes
 {
@@ -10,6 +11,7 @@ namespace ProdmasterSalaryService.Models.Classes
         [Newtonsoft.Json.JsonProperty("number")]
         public long DisanId { get; set; }
         [Newtonsoft.Json.JsonProperty("object")]
+        [ForeignKey("object")]
         public long Object {  get; set; }
         [Newtonsoft.Json.JsonProperty("timebeg")]
         public DateTime? Start {  get; set; }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using ProdmasterSalaryService.Models.Interfaces;
 
 namespace ProdmasterSalaryService.Models.Classes
@@ -18,6 +19,7 @@ namespace ProdmasterSalaryService.Models.Classes
         [Newtonsoft.Json.JsonProperty("paid")]
         public DateTime Paid { get; set; }
         [Newtonsoft.Json.JsonProperty("object")]
+        [ForeignKey("object")]
         public long? Object { get; set; }
         [Newtonsoft.Json.JsonProperty("rem1")]
         public string? Note { get; set; } = string.Empty;
